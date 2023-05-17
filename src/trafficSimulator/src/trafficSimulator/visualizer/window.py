@@ -5,11 +5,12 @@ class Window:
     def __init__(self, simulation):
         self.simulation = simulation
 
-        self.zoom = 7
+        self.zoom = 5
         self.offset = (0, 0)
         self.speed = 1
 
         self.is_running = False
+        self.is_stopped = False
 
         self.is_dragging = False
         self.old_offset = (0, 0)
@@ -30,14 +31,18 @@ class Window:
         with dpg.theme() as global_theme:
 
             with dpg.theme_component(dpg.mvAll):
-                dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 5, category=dpg.mvThemeCat_Core)
-                dpg.add_theme_style(dpg.mvStyleVar_FrameBorderSize, 1, category=dpg.mvThemeCat_Core)
-                dpg.add_theme_style(dpg.mvStyleVar_WindowBorderSize, 0, category=dpg.mvThemeCat_Core)
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_FrameRounding, 5, category=dpg.mvThemeCat_Core)
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_FrameBorderSize, 1, category=dpg.mvThemeCat_Core)
+                dpg.add_theme_style(
+                    dpg.mvStyleVar_WindowBorderSize, 0, category=dpg.mvThemeCat_Core)
                 # dpg.add_theme_style(dpg.mvStyleVar_ItemSpacing, (8, 6), category=dpg.mvThemeCat_Core)
                 dpg.add_theme_color(dpg.mvThemeCol_Button, (90, 90, 95))
                 dpg.add_theme_color(dpg.mvThemeCol_Header, (0, 91, 140))
             with dpg.theme_component(dpg.mvInputInt):
-                dpg.add_theme_color(dpg.mvThemeCol_FrameBg, (90, 90, 95), category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_FrameBg,
+                                    (90, 90, 95), category=dpg.mvThemeCat_Core)
             #     dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 5, category=dpg.mvThemeCat_Core)
 
         dpg.bind_theme(global_theme)
@@ -47,15 +52,16 @@ class Window:
         with dpg.theme(tag="RunButtonTheme"):
             with dpg.theme_component(dpg.mvButton):
                 dpg.add_theme_color(dpg.mvThemeCol_Button, (5, 150, 18))
-                dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (12, 207, 23))
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_ButtonHovered, (12, 207, 23))
                 dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (2, 120, 10))
 
         with dpg.theme(tag="StopButtonTheme"):
             with dpg.theme_component(dpg.mvButton):
                 dpg.add_theme_color(dpg.mvThemeCol_Button, (150, 5, 18))
-                dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (207, 12, 23))
+                dpg.add_theme_color(
+                    dpg.mvThemeCol_ButtonHovered, (207, 12, 23))
                 dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (120, 2, 10))
-
 
     def create_windows(self):
         dpg.add_window(
@@ -66,7 +72,7 @@ class Window:
             no_resize=True,
             no_move=True
         )
-        
+
         dpg.add_draw_node(tag="OverlayCanvas", parent="MainWindow")
         dpg.add_draw_node(tag="Canvas", parent="MainWindow")
 
@@ -81,17 +87,22 @@ class Window:
             with dpg.collapsing_header(label="Simulation Control", default_open=True):
 
                 with dpg.group(horizontal=True):
-                    dpg.add_button(label="Run", tag="RunStopButton", callback=self.toggle)
-                    dpg.add_button(label="Next frame", callback=self.simulation.update)
+                    dpg.add_button(
+                        label="Run", tag="RunStopButton", callback=self.toggle)
+                    dpg.add_button(label="Next frame",
+                                   callback=self.simulation.update)
+                    dpg.add_button(
+                        label="Stop area Deactivated", tag="ActivateStopButton", callback=self.toggle_stop)
 
-                dpg.add_slider_int(tag="SpeedInput", label="Speed", min_value=1, max_value=100,default_value=1, callback=self.set_speed)
-            
+                dpg.add_slider_int(tag="SpeedInput", label="Speed", min_value=1,
+                                   max_value=100, default_value=1, callback=self.set_speed)
+
             with dpg.collapsing_header(label="Simulation Status", default_open=True):
 
                 with dpg.table(header_row=False):
                     dpg.add_table_column()
                     dpg.add_table_column()
-                    
+
                     with dpg.table_row():
                         dpg.add_text("Status:")
                         dpg.add_text("_", tag="StatusText")
@@ -103,14 +114,20 @@ class Window:
                     with dpg.table_row():
                         dpg.add_text("Frame:")
                         dpg.add_text("_", tag="FrameStatus")
-            
-            
+
+                    with dpg.table_row():
+                        dpg.add_text("Average Speed:")
+                        dpg.add_text("_", tag="SpeedStatus")
+
             with dpg.collapsing_header(label="Camera Control", default_open=True):
-    
-                dpg.add_slider_float(tag="ZoomSlider", label="Zoom", min_value=0.1, max_value=100, default_value=self.zoom,callback=self.set_offset_zoom)            
+
+                dpg.add_slider_float(tag="ZoomSlider", label="Zoom", min_value=0.1,
+                                     max_value=100, default_value=self.zoom, callback=self.set_offset_zoom)
                 with dpg.group():
-                    dpg.add_slider_float(tag="OffsetXSlider", label="X Offset", min_value=-100, max_value=100, default_value=self.offset[0], callback=self.set_offset_zoom)
-                    dpg.add_slider_float(tag="OffsetYSlider", label="Y Offset", min_value=-100, max_value=100, default_value=self.offset[1], callback=self.set_offset_zoom)
+                    dpg.add_slider_float(tag="OffsetXSlider", label="X Offset", min_value=-100,
+                                         max_value=100, default_value=self.offset[0], callback=self.set_offset_zoom)
+                    dpg.add_slider_float(tag="OffsetYSlider", label="Y Offset", min_value=-100,
+                                         max_value=100, default_value=self.offset[1], callback=self.set_offset_zoom)
 
     def resize_windows(self):
         width = dpg.get_viewport_width()
@@ -140,20 +157,19 @@ class Window:
         else:
             dpg.set_value("StatusText", "Stopped")
             dpg.configure_item("StatusText", color=(255, 0, 0))
-        
+
         # Update time and frame text
         dpg.set_value("TimeStatus", f"{self.simulation.t:.2f}s")
         dpg.set_value("FrameStatus", self.simulation.frame_count)
 
-        
-
+        dpg.set_value("SpeedStatus", self.get_average_speed())
 
     def mouse_down(self):
         if not self.is_dragging:
             if dpg.is_item_hovered("MainWindow"):
                 self.is_dragging = True
                 self.old_offset = self.offset
-        
+
     def mouse_drag(self, sender, app_data):
         if self.is_dragging:
             self.offset = (
@@ -182,24 +198,24 @@ class Window:
 
     def set_offset_zoom(self):
         self.zoom = dpg.get_value("ZoomSlider")
-        self.offset = (dpg.get_value("OffsetXSlider"), dpg.get_value("OffsetYSlider"))
+        self.offset = (dpg.get_value("OffsetXSlider"),
+                       dpg.get_value("OffsetYSlider"))
 
     def set_speed(self):
         self.speed = dpg.get_value("SpeedInput")
 
-
     def to_screen(self, x, y):
         return (
-            self.canvas_width/2 + (x + self.offset[0] ) * self.zoom,
+            self.canvas_width/2 + (x + self.offset[0]) * self.zoom,
             self.canvas_height/2 + (y + self.offset[1]) * self.zoom
         )
 
     def to_world(self, x, y):
         return (
             (x - self.canvas_width/2) / self.zoom - self.offset[0],
-            (y - self.canvas_height/2) / self.zoom - self.offset[1] 
+            (y - self.canvas_height/2) / self.zoom - self.offset[1]
         )
-    
+
     @property
     def canvas_width(self):
         return dpg.get_item_width("MainWindow")
@@ -208,11 +224,10 @@ class Window:
     def canvas_height(self):
         return dpg.get_item_height("MainWindow")
 
-
     def draw_bg(self, color=(250, 250, 250)):
         dpg.draw_rectangle(
             (-10, -10),
-            (self.canvas_width+10, self.canvas_height+10), 
+            (self.canvas_width+10, self.canvas_height+10),
             thickness=0,
             fill=color,
             parent="OverlayCanvas"
@@ -220,11 +235,11 @@ class Window:
 
     def draw_axes(self, opacity=80):
         x_center, y_center = self.to_screen(0, 0)
-        
+
         dpg.draw_line(
             (-10, y_center),
             (self.canvas_width+10, y_center),
-            thickness=2, 
+            thickness=2,
             color=(0, 0, 0, opacity),
             parent="OverlayCanvas"
         )
@@ -265,7 +280,15 @@ class Window:
 
     def draw_segments(self):
         for segment in self.simulation.segments:
-            dpg.draw_polyline(segment.points, color=(180, 180, 220), thickness=3.5*self.zoom, parent="Canvas")
+            dpg.draw_polyline(segment.points, color=(
+                180, 180, 220), thickness=3.5*self.zoom, parent="Canvas")
+        for stop_area in self.simulation.stop_areas:
+            if stop_area.is_stop:
+                color = (250, 100, 100)
+            else:
+                color = (200, 100, 100)
+            dpg.draw_polyline(stop_area.points, color=color,
+                              thickness=3.5*self.zoom, parent="Canvas")
             # dpg.draw_arrow(segment.points[-1], segment.points[-2], thickness=0, size=2, color=(0, 0, 0, 50), parent="Canvas")
 
     def draw_vehicles(self):
@@ -273,6 +296,8 @@ class Window:
             for vehicle_id in segment.vehicles:
                 vehicle = self.simulation.vehicles[vehicle_id]
                 progress = vehicle.x / segment.get_length()
+                if progress > 1:
+                    progress = 1
 
                 position = segment.get_point(progress)
                 heading = segment.get_heading(progress)
@@ -285,17 +310,27 @@ class Window:
                     color=(0, 0, 255),
                     parent=node
                 )
+                dpg.draw_text((0, 0), str(
+                    vehicle_id)[-2:], color=(255, 0, 0), size=15, parent=node)
 
                 translate = dpg.create_translation_matrix(position)
                 rotate = dpg.create_rotation_matrix(heading, [0, 0, 1])
                 dpg.apply_transform(node, translate*rotate)
 
+    def get_average_speed(self):
+        vehicles = self.simulation.vehicles.values()
+        if len(vehicles) > 0:
+            avg_v = sum([v.v for v in vehicles]) / len(vehicles)
+            return avg_v
+        else:
+            return 0
+
     def apply_transformation(self):
-        screen_center = dpg.create_translation_matrix([self.canvas_width/2, self.canvas_height/2, -0.01])
+        screen_center = dpg.create_translation_matrix(
+            [self.canvas_width/2, self.canvas_height/2, -0.01])
         translate = dpg.create_translation_matrix(self.offset)
         scale = dpg.create_scale_matrix([self.zoom, self.zoom])
         dpg.apply_transform("Canvas", screen_center*scale*translate)
-
 
     def render_loop(self):
         # Events
@@ -305,7 +340,7 @@ class Window:
         # Remove old drawings
         dpg.delete_item("OverlayCanvas", children_only=True)
         dpg.delete_item("Canvas", children_only=True)
-        
+
         # New drawings
         self.draw_bg()
         self.draw_axes()
@@ -319,6 +354,11 @@ class Window:
 
         # Update panels
         self.update_panels()
+
+        if self.is_stopped:
+            self.simulation.activate_stop()
+        else:
+            self.simulation.deactivate_stop()
 
         # Update simulation
         if self.is_running:
@@ -342,5 +382,23 @@ class Window:
         dpg.bind_item_theme("RunStopButton", "RunButtonTheme")
 
     def toggle(self):
-        if self.is_running: self.stop()
-        else: self.run()
+        if self.is_running:
+            self.stop()
+        else:
+            self.run()
+
+    def activate_stop(self):
+        self.is_stopped = True
+        dpg.set_item_label("ActivateStopButton", "Stop area Activated")
+        dpg.bind_item_theme("ActivateStopButton", "StopButtonTheme")
+
+    def deactivate_stop(self):
+        self.is_stopped = False
+        dpg.set_item_label("ActivateStopButton", "Stop area Deactivated")
+        dpg.bind_item_theme("ActivateStopButton", "RunButtonTheme")
+
+    def toggle_stop(self):
+        if self.is_stopped:
+            self.deactivate_stop()
+        else:
+            self.activate_stop()
