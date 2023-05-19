@@ -1,3 +1,4 @@
+from .geometry.circular_curve import CircularCurve
 from .geometry.stop_area import StopArea
 from .vehicle_generator import VehicleGenerator
 from .geometry.quadratic_curve import QuadraticCurve
@@ -14,10 +15,11 @@ class Simulation:
 
         self.t = 0.0
         self.frame_count = 0
-        self.dt = 1/60
+        self.dt = 1 / 60
 
         self.stop_areas = []
         self.is_stop = False
+        print('imported')
 
     def add_vehicle(self, veh):
         self.vehicles[veh.id] = veh
@@ -50,6 +52,10 @@ class Simulation:
         cur = QuadraticCurve(start, control, end)
         self.add_segment(cur)
 
+    def create_circular_curve(self, center, radius, start_angle, end_angle):
+        cur = CircularCurve(center, radius, start_angle, end_angle)
+        self.add_segment(cur)
+
     def create_cubic_bezier_curve(self, start, control_1, control_2, end):
         cur = CubicCurve(start, control_1, control_2, end)
         self.add_segment(cur)
@@ -77,32 +83,7 @@ class Simulation:
                 # print(
                 #     f'found inside: {str(segment.vehicles[i])[-2:]} follows {str(segment.vehicles[i-1])[-2:]}')
                 self.vehicles[segment.vehicles[i]].update(
-                    self.vehicles[segment.vehicles[i-1]], self.dt)
-
-        # Update vehicles
-        # for segment in self.segments:
-        #     if len(segment.vehicles) != 0:
-        #         lead_vehicle = self.vehicles[segment.vehicles[0]]
-        #         lead_of_lead_vehicle = None
-        #         if lead_vehicle.current_road_index + 1 < len(lead_vehicle.path):
-        #             lead_x = segment.get_length()
-        #             for road in lead_vehicle.path[lead_vehicle.current_road_index+1:]:
-        #                 if len(self.segments[road].vehicles) != 0:
-        #                     lead_of_lead_vehicle = self.segments[road].vehicles[-1]
-
-        #                     lead_x += self.vehicles[lead_of_lead_vehicle].x
-        #                     print(
-        #                         f'found outside: {str(segment.vehicles[0])[-2:]} follows {str(lead_of_lead_vehicle)[-2:]}, lead_x: {lead_x}')
-        #                     self.vehicles[segment.vehicles[0]].update_outside(
-        #                         self.vehicles[lead_of_lead_vehicle], self.dt, lead_x)
-        #                     break
-        #                 else:
-        #                     lead_x += self.segments[road].get_length()
-        #     for i in range(1, len(segment.vehicles)):
-        #         print(
-        #             f'found inside: {str(segment.vehicles[i])[-2:]} follows {str(segment.vehicles[i-1])[-2:]}, lead_x: {-self.vehicles[segment.vehicles[i]].x+self.vehicles[segment.vehicles[i-1]].x}')
-        #         self.vehicles[segment.vehicles[i]].update(
-        #             self.vehicles[segment.vehicles[i-1]], self.dt)
+                    self.vehicles[segment.vehicles[i - 1]], self.dt)
 
         # Check roads for out of bounds vehicle
         for segment in self.segments:
@@ -143,7 +124,7 @@ class Simulation:
             return None, None
 
         current_road = self.segments[vehicle.path[vehicle.current_road_index]]
-        road_indices_ahead = vehicle.path[vehicle.current_road_index+1:]
+        road_indices_ahead = vehicle.path[vehicle.current_road_index + 1:]
         lead_x = current_road.get_length() - vehicle.x
 
         for road_index in road_indices_ahead:

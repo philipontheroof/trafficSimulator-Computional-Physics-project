@@ -8,3 +8,5 @@ from .core.vehicle_generator import FiniteVehicleGenerator
 
 from .core.simulation import Simulation
 from .visualizer.window import Window
+
+print('imported trafficSimulator')

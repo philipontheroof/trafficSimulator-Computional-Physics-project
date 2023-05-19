@@ -7,4 +7,4 @@ Original Project from <https://github.com/BilHim/trafficSimulator>
 ### Usage
 
 ------------
-Run simulation/practice.py
+Run practice.py
