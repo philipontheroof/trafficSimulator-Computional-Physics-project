@@ -9,6 +9,7 @@ from .vehicle import Vehicle
 
 class Simulation:
     def __init__(self):
+
         self.segments = []
         self.vehicles = {}
         self.vehicle_generator = []
@@ -19,7 +20,6 @@ class Simulation:
 
         self.stop_areas = []
         self.is_stop = False
-        print('imported')
 
     def add_vehicle(self, veh):
         self.vehicles[veh.id] = veh
@@ -69,7 +69,6 @@ class Simulation:
             self.update()
 
     def update(self):
-
         # Update vehicles
         for segment in self.segments:
             if len(segment.vehicles) != 0:
