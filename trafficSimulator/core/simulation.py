@@ -10,6 +10,9 @@ from .vehicle import Vehicle
 class Simulation:
     def __init__(self):
 
+        self.is_logging = False
+        self.log = []
+
         self.segments = []
         self.vehicles = {}
         self.vehicle_generator = []
@@ -21,8 +24,11 @@ class Simulation:
         self.stop_areas = []
         self.is_stop = False
 
-    def add_vehicle(self, veh):
+    def add_vehicle_to_self(self, veh):
         self.vehicles[veh.id] = veh
+
+    def add_vehicle(self, veh):
+        self.add_vehicle_to_self(veh)
         if len(veh.path) > 0:
             self.segments[veh.path[0]].add_vehicle(veh)
 
@@ -69,6 +75,13 @@ class Simulation:
             self.update()
 
     def update(self):
+
+        if self.is_logging:
+            r = {}
+            for vehicle in self.vehicles.values():
+                r[vehicle.id] = (vehicle.x, vehicle.v)
+            self.log.append((self.t, r))
+
         # Update vehicles
         for segment in self.segments:
             if len(segment.vehicles) != 0:
@@ -102,7 +115,7 @@ class Simulation:
                     next_road_index = vehicle.path[vehicle.current_road_index]
                     self.segments[next_road_index].vehicles.append(vehicle_id)
                     # Reset vehicle properties
-                    vehicle.x = 0
+                    vehicle.x = vehicle.x - segment.get_length()
                     # In all cases, remove it from its road
                     segment.vehicles.popleft()
                 else:

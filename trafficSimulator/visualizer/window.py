@@ -1,8 +1,13 @@
 import dearpygui.dearpygui as dpg
+import pickle
+from datetime import datetime
 
 
 class Window:
     def __init__(self, simulation):
+
+        self.is_logging = False
+
         self.simulation = simulation
 
         self.zoom = 5
@@ -129,16 +134,20 @@ class Window:
                     dpg.add_slider_float(tag="OffsetYSlider", label="Y Offset", min_value=-100,
                                          max_value=100, default_value=self.offset[1], callback=self.set_offset_zoom)
 
+            with dpg.collapsing_header(label="Log Control", default_open=True):
+                dpg.add_button(
+                    label="No logging", tag="ActivateLogButton", callback=self.toggle_log)
+
     def resize_windows(self):
         width = dpg.get_viewport_width()
         height = dpg.get_viewport_height()
 
         dpg.set_item_width("ControlsWindow", 300)
-        dpg.set_item_height("ControlsWindow", height-38)
+        dpg.set_item_height("ControlsWindow", height - 38)
         dpg.set_item_pos("ControlsWindow", (0, 0))
 
-        dpg.set_item_width("MainWindow", width-315)
-        dpg.set_item_height("MainWindow", height-38)
+        dpg.set_item_width("MainWindow", width - 315)
+        dpg.set_item_height("MainWindow", height - 38)
         dpg.set_item_pos("MainWindow", (300, 0))
 
     def create_handlers(self):
@@ -173,8 +182,8 @@ class Window:
     def mouse_drag(self, sender, app_data):
         if self.is_dragging:
             self.offset = (
-                self.old_offset[0] + app_data[1]/self.zoom,
-                self.old_offset[1] + app_data[2]/self.zoom
+                self.old_offset[0] + app_data[1] / self.zoom,
+                self.old_offset[1] + app_data[2] / self.zoom
             )
 
     def mouse_release(self):
@@ -182,7 +191,7 @@ class Window:
 
     def mouse_wheel(self, sender, app_data):
         if dpg.is_item_hovered("MainWindow"):
-            self.zoom_speed = 1 + 0.01*app_data
+            self.zoom_speed = 1 + 0.01 * app_data
 
     def update_inertial_zoom(self, clip=0.005):
         if self.zoom_speed != 1:
@@ -206,14 +215,14 @@ class Window:
 
     def to_screen(self, x, y):
         return (
-            self.canvas_width/2 + (x + self.offset[0]) * self.zoom,
-            self.canvas_height/2 + (y + self.offset[1]) * self.zoom
+            self.canvas_width / 2 + (x + self.offset[0]) * self.zoom,
+            self.canvas_height / 2 + (y + self.offset[1]) * self.zoom
         )
 
     def to_world(self, x, y):
         return (
-            (x - self.canvas_width/2) / self.zoom - self.offset[0],
-            (y - self.canvas_height/2) / self.zoom - self.offset[1]
+            (x - self.canvas_width / 2) / self.zoom - self.offset[0],
+            (y - self.canvas_height / 2) / self.zoom - self.offset[1]
         )
 
     @property
@@ -227,7 +236,7 @@ class Window:
     def draw_bg(self, color=(250, 250, 250)):
         dpg.draw_rectangle(
             (-10, -10),
-            (self.canvas_width+10, self.canvas_height+10),
+            (self.canvas_width + 10, self.canvas_height + 10),
             thickness=0,
             fill=color,
             parent="OverlayCanvas"
@@ -238,14 +247,14 @@ class Window:
 
         dpg.draw_line(
             (-10, y_center),
-            (self.canvas_width+10, y_center),
+            (self.canvas_width + 10, y_center),
             thickness=2,
             color=(0, 0, 0, opacity),
             parent="OverlayCanvas"
         )
         dpg.draw_line(
             (x_center, -10),
-            (x_center, self.canvas_height+10),
+            (x_center, self.canvas_height + 10),
             thickness=2,
             color=(0, 0, 0, opacity),
             parent="OverlayCanvas"
@@ -257,13 +266,13 @@ class Window:
 
         n_x = int(x_start / unit)
         n_y = int(y_start / unit)
-        m_x = int(x_end / unit)+1
-        m_y = int(y_end / unit)+1
+        m_x = int(x_end / unit) + 1
+        m_y = int(y_end / unit) + 1
 
         for i in range(n_x, m_x):
             dpg.draw_line(
-                self.to_screen(unit*i, y_start - 10/self.zoom),
-                self.to_screen(unit*i, y_end + 10/self.zoom),
+                self.to_screen(unit * i, y_start - 10 / self.zoom),
+                self.to_screen(unit * i, y_end + 10 / self.zoom),
                 thickness=1,
                 color=(0, 0, 0, opacity),
                 parent="OverlayCanvas"
@@ -271,8 +280,8 @@ class Window:
 
         for i in range(n_y, m_y):
             dpg.draw_line(
-                self.to_screen(x_start - 10/self.zoom, unit*i),
-                self.to_screen(x_end + 10/self.zoom, unit*i),
+                self.to_screen(x_start - 10 / self.zoom, unit * i),
+                self.to_screen(x_end + 10 / self.zoom, unit * i),
                 thickness=1,
                 color=(0, 0, 0, opacity),
                 parent="OverlayCanvas"
@@ -281,14 +290,14 @@ class Window:
     def draw_segments(self):
         for segment in self.simulation.segments:
             dpg.draw_polyline(segment.points, color=(
-                180, 180, 220), thickness=3.5*self.zoom, parent="Canvas")
+                180, 180, 220), thickness=3.5 * self.zoom, parent="Canvas")
         for stop_area in self.simulation.stop_areas:
             if stop_area.is_stop:
                 color = (250, 100, 100)
             else:
                 color = (200, 100, 100)
             dpg.draw_polyline(stop_area.points, color=color,
-                              thickness=3.5*self.zoom, parent="Canvas")
+                              thickness=3.5 * self.zoom, parent="Canvas")
             # dpg.draw_arrow(segment.points[-1], segment.points[-2], thickness=0, size=2, color=(0, 0, 0, 50), parent="Canvas")
 
     def draw_vehicles(self):
@@ -306,7 +315,7 @@ class Window:
                 dpg.draw_line(
                     (0, 0),
                     (vehicle.l, 0),
-                    thickness=1.76*self.zoom,
+                    thickness=1.76 * self.zoom,
                     color=(0, 0, 255),
                     parent=node
                 )
@@ -315,7 +324,7 @@ class Window:
 
                 translate = dpg.create_translation_matrix(position)
                 rotate = dpg.create_rotation_matrix(heading, [0, 0, 1])
-                dpg.apply_transform(node, translate*rotate)
+                dpg.apply_transform(node, translate * rotate)
 
     def get_average_speed(self):
         vehicles = self.simulation.vehicles.values()
@@ -327,10 +336,10 @@ class Window:
 
     def apply_transformation(self):
         screen_center = dpg.create_translation_matrix(
-            [self.canvas_width/2, self.canvas_height/2, -0.01])
+            [self.canvas_width / 2, self.canvas_height / 2, -0.01])
         translate = dpg.create_translation_matrix(self.offset)
         scale = dpg.create_scale_matrix([self.zoom, self.zoom])
-        dpg.apply_transform("Canvas", screen_center*scale*translate)
+        dpg.apply_transform("Canvas", screen_center * scale * translate)
 
     def render_loop(self):
         # Events
@@ -402,3 +411,31 @@ class Window:
             self.deactivate_stop()
         else:
             self.activate_stop()
+
+    def activate_log(self):
+        self.is_logging = True
+        self.simulation.is_logging = True
+        dpg.set_item_label("ActivateLogButton", "Logging...")
+        dpg.bind_item_theme("ActivateLogButton", "StopButtonTheme")
+
+    def deactivate_log(self):
+        self.is_logging = False
+        self.simulation.is_logging = False
+        log = self.simulation.log
+
+        now = datetime.now()
+        date_time = now.strftime("%m-%d-%Y-%H-%M-%S")
+        s = log[0][0]
+        e = log[-1][0]
+        with open(f"./logs/log_{date_time}_{s:.2f}_to_{e:.2f}.pkl", "wb") as f:
+            pickle.dump(log, f)
+
+        self.simulation.log = []
+        dpg.set_item_label("ActivateLogButton", "No logging")
+        dpg.bind_item_theme("ActivateLogButton", "RunButtonTheme")
+
+    def toggle_log(self):
+        if self.is_logging:
+            self.deactivate_log()
+        else:
+            self.activate_log()
