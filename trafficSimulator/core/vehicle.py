@@ -22,7 +22,7 @@ class Vehicle:
         self.T_res = 0.7
         self.records = deque([], maxlen=int(self.T_res / self.dt))
 
-        self.l = 5.0
+        self.l = 3.6
         self.s0 = 10.0
         self.T = 1
         self.v_max = 16.6
