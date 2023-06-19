@@ -1,7 +1,8 @@
-from random import random
+from random import random, seed as random_seed
 import math
 from trafficSimulator import *
 from trafficSimulator.core.geometry.circular_curve import CircularCurve
+import numpy as np
 
 sim = Simulation()
 
@@ -32,29 +33,19 @@ vehicles = []
 km = 1000
 h = 3600
 
-# sim.create_circular_curve((0, 0), 100.0, 0, 2 * math.pi)
-
-# for t in range(22):
-#     vehicle = (0.1 * t, {'path': path, 'v': urb(5.0, 15.0), 'v_max': 120 * km / h,
-#                'a_max': urb(0.3, 2.0), 'b_max': urb(1.5, 2.5), 'T': urb(0.8, 2.0),
-#                          'T_res': 1.0, 's0': urb(2.0, 5.0)})
-#     vehicles.append(vehicle)
-
-# # vehicles.append((10.0, {'path': path, 'v': v, 'v_max': 50.0,
-# #                         'a_max': 25.0, 'b_max': 10.0, 'T': 5.0}))
-
-# vg = FiniteVehicleGenerator({
-#     'vehicles': vehicles,
-# })
-# sim.add_vehicle_generator(vg)
-
-
 cur = CircularCurve((0, 0), 50.0, 0, 2 * math.pi)
 
-for i in range(21, -1, -1):
-    vehicles.append(Vehicle(config={'id': i, 'path': path, 'v': urb(5.0, 15.0), 'v_max': 120 * km / h,
-                                    'a_max': urb(0.3, 2.0), 'b_max': urb(1.5, 2.5), 'T': urb(0.8, 2.0),
-                                    'T_res': 0.0, 's0': urb(2.0, 5.0), 'x': cur.get_length() * i / 22.0}))
+random_seed(0)
+
+N = 22
+for i in range(N - 1, -1, -1):
+    x = cur.get_length() * i / N + np.random.uniform(-3.0, 3.0)
+    if x < 0:
+        x = 0
+    vehicles.append(Vehicle(
+        config={'id': i, 'path': path, 'v': urb(5.0, 15.0), 'v_max': 120 * km / h,
+                'a_max': 4.0, 'b_max': 8.0, 'T': 1.3,
+                'T_res': 0.5, 's0': 3.0, 'x': cur.get_length() * i / N}))
 
 sim.add_segment(cur)
 
